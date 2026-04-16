@@ -8,7 +8,11 @@ import pandas as pd
 import yaml
 
 from ..utils.logging import get_logger
-from ..validation.contracts import DataContractError, validate_for_r_export
+from ..validation.contracts import (
+    DataContractError,
+    validate_for_r_export,
+    validate_research_export_metadata,
+)
 
 
 def _load_config(config_path: str | Path) -> dict[str, Any]:
@@ -63,6 +67,10 @@ def save_for_r(
     primary_key: str = "row_id",
     provenance_script: str = "unknown",
     git_commit: str = "unknown",
+    run_id: str | None = None,
+    stage: str | None = None,
+    upstream_artifacts: list[str] | None = None,
+    evidence_metadata: dict[str, Any] | None = None,
 ) -> tuple[Path, Path]:
     """
     Save a DataFrame for R visualization with an enforced meta sidecar.
@@ -87,6 +95,13 @@ def save_for_r(
     if suffix not in {".parquet", ".csv"}:
         raise DataContractError("filename must end with .parquet or .csv")
 
+    resolved_stage = stage or cfg.get("research", {}).get("default_stage")
+    validate_research_export_metadata(
+        stage=resolved_stage,
+        upstream_artifacts=upstream_artifacts,
+        evidence_metadata=evidence_metadata,
+    )
+
     df = _ensure_primary_key(df=df, primary_key=primary_key)
     validate_for_r_export(df, primary_key=primary_key)
 
@@ -104,6 +119,10 @@ def save_for_r(
             "script": provenance_script,
             "git_commit": git_commit,
             "config": str(resolved_config_path),
+            "run_id": run_id,
+            "stage": resolved_stage,
+            "upstream_artifacts": list(upstream_artifacts or []),
+            "evidence_metadata": dict(evidence_metadata or {}),
         },
     }
     meta_path = out_path.with_name(f"{out_path.stem}_meta.json")

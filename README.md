@@ -3,226 +3,142 @@
 Template repository for AVCP-based agentic development.
 
 <!-- AVCP:README:START -->
-## AVCP Template
+## AVCP Research Runtime Template
 
-Research engineering starter with AVCP prompts, repo-memory docs, and enforced bridge contracts.
+Provider-neutral research runtime with evidence-gated agent workflows, reproducible run ledgers, and bridge contracts.
 
 > [!TIP]
-> AVCP = **Repo-as-Memory** for AI engineering. Keep truth in versioned files, not chat context.
+> AVCP keeps research truth in versioned files and run ledgers, not in chat memory.
 
-AVCP (Agentic Version Control Protocol) is a practical operating model for building software with coding agents (Codex / Claude Code / Cursor) under explicit, testable contracts.
+This template turns AVCP into a provider-neutral research runtime: docs lock policy, config locks execution boundaries, and `artifacts/runs/<run_id>/` keeps durable state for replay, audit, and manuscript evidence assembly.
 
-### ✨ Why AVCP
+### Why This Template Exists
 
-| Risk | Typical symptom | AVCP control |
+| Research risk | Typical failure mode | Template control |
 |---|---|---|
-| 🧠 Context amnesia | decisions disappear across sessions | `docs/state.md` + `docs/decisions.md` |
-| 🎭 Hallucinated implementation | invented contracts, guessed logic | tier gates + specs-first workflow |
-| 🤫 Silent failures | pipelines "succeed" with wrong outputs | fail-fast validation + manifests |
-| 📄 Docs drift | README/changelog become stale | generated README + safe changelog updates |
+| Drifted protocol | metrics or exclusions change mid-analysis | approval gates + decision log |
+| Hidden runtime state | context disappears between agent sessions | `manifest.json` + `events.jsonl` + `claims.json` |
+| Overstated conclusions | observation is written as causation | claim classes + evidence requirements |
+| Fragile handoffs | plots/tables lose provenance | bridge sidecars with stage + upstream artifacts |
 
-### 🗂 Repository Layout
+### Repository Layout
 
 ```text
-prompts/                 # pinned system prompt
-config/                  # runtime configuration source-of-truth
-docs/                    # memory, constraints, decisions, contracts
-src/avcp_template/       # installable package
-scripts/dev/             # README/changelog maintenance tooling
-tests/                   # verification suite
+prompts/                 # pinned research-runtime prompt
+config/                  # runtime and audit source-of-truth
+docs/                    # memory, constraints, lifecycle, contracts
+src/avcp_template/       # bridge + runtime models/storage
+scripts/dev/             # doctor, README, changelog tooling
+tests/                   # runtime, bridge, and tooling verification
+artifacts/runs/          # durable run ledgers (created during use)
 ```
 
-## 🧠 AVCP Operating Contracts
+## Operating Contracts
 
-### 1) Agent cognition contract
-- Use `prompts/AVCP_SYSTEM_PROMPT_MIN.md` as the pinned operating protocol.
-- Start each coding session by loading:
+### 1) Research cognition contract
+- Start sessions by loading:
   - `docs/state.md`
   - `docs/constraints.md`
   - `docs/decisions.md`
   - `docs/api_specs.md`
   - `docs/data_contracts.md`
   - `docs/avcp_guidelines.md`
+  - `docs/research_mode.md`
+- Use `prompts/AVCP_SYSTEM_PROMPT_MIN.md` as the pinned operating protocol.
 
-### 2) Configuration contract
-- Runtime paths/parameters must come from `config/config.yaml`.
-- Hardcoded paths are contract violations.
+### 2) Runtime contract
+- All execution limits and paths come from `config/config.yaml`.
+- Serious runs should persist:
+  - `artifacts/runs/<run_id>/manifest.json`
+  - `artifacts/runs/<run_id>/events.jsonl`
+  - `artifacts/runs/<run_id>/claims.json`
+  - `artifacts/runs/<run_id>/outputs/`
 
-### 3) Data handoff contract
+### 3) Research claim contract
+- Non-trivial claims must declare:
+  - `claim_class`
+  - `evidence_refs`
+  - `uncertainty`
+  - `approval_status`
+  - `threats_to_validity`
+- Observational claims may not use causal wording.
+
+### 4) Data handoff contract
 - Use `src/avcp_template/io/bridge.py::save_for_r()` for Python->R handoffs.
-- Require explicit primary key + `<stem>_meta.json` sidecar.
+- Sidecars must include schema plus research provenance where available.
 
-### 4) Documentation contract
-- `README.md` is derived from `project.yaml` + `docs/readme.template.md`.
-- Changelog updates go through `scripts/dev/update_changelog.py` only.
+### 5) Tooling contract
+- `README.md` is generated from `project.yaml` + `docs/readme.template.md`.
+- Changelog updates go through `scripts/dev/update_changelog.py`.
+- Preflight checks go through `python scripts/dev/doctor.py`.
 
-### 5) Role + evidence contract
-- AI must remain objective: no flattery, no fabricated conclusions.
-- Non-trivial conclusions must include explicit evidence and uncertainty.
-- Reference: `docs/avcp_guidelines.md#4.2 AI Role Positioning: Objectivity and Evidence`.
-
-## 🚀 Scenario A: Start a New Project
-
-### A1. Local bootstrap (human)
+## Quick Start
 
 ```bash
 python -m pip install -e ".[dev]"
-ruff check .
-ruff format --check .
-mypy .
-pytest -q
+PYTHONPATH=src pytest -q
+python scripts/dev/doctor.py
 python scripts/dev/generate_readme.py --check
 ```
 
-### A2. First agent prompt (copy-paste)
+## Research Lifecycle
+
+The default lifecycle is:
+1. `question_definition`
+2. `background_review`
+3. `protocol_lock`
+4. `execution`
+5. `evaluation_visualization`
+6. `interpretation`
+7. `manuscript_evidence_pack`
+
+Load the matching section in `docs/research_mode.md` before non-trivial work.
+
+## Example Prompt
 
 ```text
 Read and enforce prompts/AVCP_SYSTEM_PROMPT_MIN.md.
-Before coding, read docs/state.md, docs/constraints.md, docs/decisions.md,
-docs/api_specs.md, docs/data_contracts.md, docs/avcp_guidelines.md.
-Reply with:
-1) [STATE SNAPSHOT]
-2) [PLAN]
-3) [PATCH SET]
-4) [TEST]
-5) [EVIDENCE]
-No invented claims. If uncertain, escalate via gates.
+Load docs/state.md, docs/constraints.md, docs/decisions.md, docs/api_specs.md,
+docs/data_contracts.md, docs/avcp_guidelines.md, docs/research_mode.md.
+If the task affects protocol, metrics, statistics, or manuscript conclusions,
+check approval gates before proposing code or claims.
 ```
 
-### A3. Initialize project metadata
+## Recommended Workflow
 
-Ask the agent to:
-1. update `project.yaml` (`name`, `title`, `domain`, `stage`, `owner`, `license`, `entrypoints`),
-2. update sprint context in `docs/state.md`,
-3. regenerate README via `python scripts/dev/generate_readme.py`.
+1. Lock or update the current stage in `docs/state.md`.
+2. Run `python scripts/dev/doctor.py` before long or publication-facing work.
+3. Persist run state under `artifacts/runs/<run_id>/`.
+4. Export analysis outputs with `save_for_r()` so sidecars capture provenance.
+5. Record safe repo changes with `python scripts/dev/update_changelog.py --entry "feat(scope): ..."`
+6. Regenerate the README after metadata/template changes.
 
-### A4. Daily delivery loop
+## Default Public Interfaces
 
-1. **Lock intent first**
-- Tier-1/Tier-2 changes update docs/specs before code.
+- Config keys:
+  - `paths.run_root`
+  - `runtime.permission_mode`
+  - `runtime.autonomy_mode`
+  - `runtime.max_parallel_subagents`
+  - `runtime.compute_budget`
+  - `runtime.checkpoint_backend`
+  - `runtime.allowed_adapters`
+  - `audit.require_evidence_for_claims`
+  - `research.default_stage`
+- Runtime records:
+  - `RunManifest`
+  - `TaskRecord`
+  - `SubagentRecord`
+  - `CheckpointRef`
+  - `ApprovalGate`
+  - `EvidenceItem`
+  - `ClaimRecord`
 
-2. **Implement in small patches**
-- Scripts under `scripts/` follow `docs/avcp_guidelines.md#4.1 Script Header Contract`.
+## Maintenance Notes
 
-3. **Verify before commit**
-- Run lint/type/test/README checks.
-
-4. **Record change safely**
-
-```bash
-python scripts/dev/update_changelog.py --entry "feat(scope): concise description"
-```
-
-5. **Commit with Conventional Commits**
-- Example: `fix(bridge): enforce primary-key uniqueness on export`.
-
-## 🛠 Scenario B: Migrate an Existing Project
-
-### B0. Pick migration strategy
-
-Choose one:
-1. docs-first (recommended),
-2. config-hardening,
-3. full contract migration.
-
-### B1. Inject AVCP skeleton
-
-Copy into the existing repository root:
-1. `prompts/`
-2. `docs/`
-3. `config/`
-4. `scripts/dev/`
-
-### B2. Migration prompt (copy-paste)
-
-```text
-This repository is migrating to AVCP.
-Read prompts/AVCP_SYSTEM_PROMPT_MIN.md and docs/avcp_guidelines.md first.
-Produce a docs-first migration snapshot:
-- current state -> docs/state.md
-- hard constraints -> docs/constraints.md
-- open design decisions -> docs/decisions.md
-No large refactor in this step.
-```
-
-### B3. Extract hardcoded runtime config (Tier-1)
-
-Ask the agent to:
-1. scan `src/` for hardcoded paths/parameters,
-2. move them to `config/config.yaml`,
-3. add fail-fast validation,
-4. update `docs/api_specs.md` / `docs/data_contracts.md` if behavior/schema changes.
-
-### B4. Standardize data output contracts
-
-For cross-stage outputs:
-1. adopt `save_for_r()` pattern or equivalent wrapper,
-2. enforce primary key + schema/provenance sidecar,
-3. document schemas in `docs/data_contracts.md`.
-
-### B5. Turn on derived-doc workflow
-
-```bash
-python scripts/dev/generate_readme.py
-python scripts/dev/generate_readme.py --check
-```
-
-Then enforce this in CI/pre-commit.
-
-### B6. Migration done criteria
-
-Migration is complete when:
-1. startup prompt is repeatable,
-2. decisions/constraints/specs are current in `docs/`,
-3. runtime config is centralized in `config/config.yaml`,
-4. output contracts are explicit and testable,
-5. CI passes lint/type/test/README checks.
-
-## 📋 Prompt Pack (Fast Reuse)
-
-### Tier-0/1 implementation
-
-```text
-Consult docs/avcp_guidelines.md first.
-Implement <feature> as Tier-1:
-- update docs/specs for interface/schema changes,
-- provide unified diff,
-- run ruff + mypy + pytest,
-- update changelog via scripts/dev/update_changelog.py.
-```
-
-### Tier-2 proposal (before coding)
-
-```text
-This is Tier-2.
-Do not code yet.
-Write assumptions, formal logic, pseudo-code, and validation plan in docs/decisions.md.
-After human lock, implement with tests.
-```
-
-### Evidence-first reporting
-
-```text
-For each conclusion provide:
-1) conclusion,
-2) evidence list (files/outputs/metrics),
-3) confidence,
-4) unresolved uncertainty + next verification action.
-Do not output unsupported conclusions.
-```
-
-## ⚠️ Common Pitfalls and Controls
-
-| Pitfall | Control |
-|---|---|
-| Chat-only decisions | persist accepted decisions to `docs/decisions.md` |
-| Silent fallback behavior | fail-fast + explicit warnings + manifest fields |
-| Schema drift | update `docs/data_contracts.md` in same patch |
-| README drift | edit `project.yaml` / `docs/readme.template.md` then regenerate |
-| Script ambiguity | enforce `4.1 Script Header Contract` |
-| Unsupported claims | enforce evidence-linked conclusions (`4.2`) |
-
-## ✅ Recommended Commands
+- Keep docs and runtime schemas in sync in the same patch.
+- Prefer local-first adapters in the template; provider-specific executors should remain replaceable.
+- If `doctor.py` fails on pending approval gates, resolve the gate before continuing.
 
 ```bash
 python -m pip install -e ".[dev]"
@@ -237,14 +153,15 @@ python scripts/dev/update_changelog.py --entry "chore(docs): update guide"
 ## 📌 Project At A Glance
 
 - **Name:** `avcp-template`
-- **Domain:** Agentic research engineering
-- **Stage:** Data / Pipeline / Analysis / Manuscript
-- **Owner:** TODO-owner
-- **License:** TODO-license
+- **Domain:** Agentic research operations
+- **Stage:** Question / Review / Protocol / Execution / Interpretation / Manuscript
+- **Owner:** Research Engineering Team
+- **License:** MIT
 
 ## ⚙️ Entrypoints
 
 - `python -m pip install -e ".[dev]"`
+- `python scripts/dev/doctor.py`
 - `pytest -q`
 - `python scripts/dev/generate_readme.py --check`
 ## 📦 Outputs
@@ -252,6 +169,9 @@ python scripts/dev/update_changelog.py --entry "chore(docs): update guide"
 - `data/interim_viz/*.parquet`
 - `data/interim_viz/*.csv`
 - `data/interim_viz/*_meta.json`
+- `artifacts/runs/*/manifest.json`
+- `artifacts/runs/*/events.jsonl`
+- `artifacts/runs/*/claims.json`
 ## 🔗 AVCP References
 
 - Pinned system prompt: `prompts/AVCP_SYSTEM_PROMPT_MIN.md`

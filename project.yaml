@@ -1,12 +1,13 @@
 name: avcp-template
-title: AVCP Template
-one_liner: Research engineering starter with AVCP prompts, repo-memory docs, and enforced bridge contracts.
-domain: Agentic research engineering
-stage: Data / Pipeline / Analysis / Manuscript
-owner: TODO-owner
-license: TODO-license
+title: AVCP Research Runtime Template
+one_liner: Provider-neutral research runtime with evidence-gated agent workflows, reproducible run ledgers, and bridge contracts.
+domain: Agentic research operations
+stage: Question / Review / Protocol / Execution / Interpretation / Manuscript
+owner: Research Engineering Team
+license: MIT
 entrypoints:
   - python -m pip install -e ".[dev]"
+  - python scripts/dev/doctor.py
   - pytest -q
   - python scripts/dev/generate_readme.py --check
 datasets: []
@@ -14,4 +15,11 @@ outputs:
   - data/interim_viz/*.parquet
   - data/interim_viz/*.csv
   - data/interim_viz/*_meta.json
-components: []
+  - artifacts/runs/*/manifest.json
+  - artifacts/runs/*/events.jsonl
+  - artifacts/runs/*/claims.json
+components:
+  - research runtime manifest
+  - approval gate policy
+  - bridge sidecar provenance
+  - doctor preflight checks

@@ -1,8 +1,25 @@
 # Project State
 
-- Stage: Data / Pipeline / Analysis / Manuscript
-- Current Sprint Goal:
-- Non-Goals:
-- Active Tasks:
-- Last Key Result:
+- Stage: question_definition -> protocol_lock -> execution -> interpretation -> manuscript_evidence_pack
+- Current Research Question: How should AVCP structure agentic research workflows so that planning, execution, interpretation, and manuscript evidence remain reproducible and approval-gated?
+- Current Dataset Versions:
+  - template_repo@HEAD
+  - synthetic test fixtures under `tests/`
+- Locked Analysis Plan:
+  - Runtime manifests and claim ledgers are the canonical machine-readable state.
+  - High-risk research mutations require explicit approval gates before execution.
+  - Every manuscript-facing claim must cite evidence refs and threats to validity.
+- Current Approval Gates:
+  - `new_metric`
+  - `outcome_switch`
+  - `post_hoc_subgroup`
+  - `statistical_interpretation`
+  - `manuscript_main_conclusion`
+- Active Run IDs:
+  - none yet; first real runs will live under `artifacts/runs/<run_id>/`
+- Risks Pending Verification:
+  - adapter-specific execution remains future work; v1 is local-first
+  - no wet-lab or LIMS integration in this template
 - Next Milestone:
+  - validate `scripts/dev/doctor.py`
+  - ship a README + prompt pack centered on research runtime usage

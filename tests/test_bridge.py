@@ -68,3 +68,46 @@ def test_save_for_r_rejects_invalid_extension(tmp_path: Path) -> None:
     df = pd.DataFrame({"row_id": [1], "value": [10]})
     with pytest.raises(DataContractError, match="filename must end with .parquet or .csv"):
         save_for_r(df=df, filename="bad.json", config_path=cfg_path, primary_key="row_id")
+
+
+def test_save_for_r_includes_research_provenance_fields(tmp_path: Path) -> None:
+    cfg_path = tmp_path / "config" / "config.yaml"
+    cfg_path.parent.mkdir(parents=True, exist_ok=True)
+    cfg_path.write_text(
+        "\n".join(
+            [
+                "paths:",
+                "  interim_viz_dir: data/interim_viz",
+                "  run_root: artifacts/runs",
+                "research:",
+                "  default_stage: execution",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    df = pd.DataFrame({"row_id": [1, 2], "value": [10, 20]})
+    _, meta_path = save_for_r(
+        df=df,
+        filename="research_export.parquet",
+        config_path=cfg_path,
+        primary_key="row_id",
+        provenance_script="tests/test_bridge.py",
+        git_commit="abc1234",
+        run_id="run-001",
+        stage="interpretation",
+        upstream_artifacts=["artifacts/runs/run-001/outputs/summary.json"],
+        evidence_metadata={"figure_ids": ["fig-1"], "table_ids": ["tbl-2"]},
+    )
+
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    assert meta["provenance"]["run_id"] == "run-001"
+    assert meta["provenance"]["stage"] == "interpretation"
+    assert meta["provenance"]["upstream_artifacts"] == [
+        "artifacts/runs/run-001/outputs/summary.json"
+    ]
+    assert meta["provenance"]["evidence_metadata"] == {
+        "figure_ids": ["fig-1"],
+        "table_ids": ["tbl-2"],
+    }

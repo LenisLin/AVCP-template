@@ -1,2 +1,20 @@
 paths:
   interim_viz_dir: data/interim_viz
+  run_root: artifacts/runs
+
+runtime:
+  permission_mode: workspace-write
+  autonomy_mode: balanced
+  max_parallel_subagents: 3
+  compute_budget:
+    max_steps: 200
+    max_runtime_minutes: 60
+  checkpoint_backend: filesystem
+  allowed_adapters:
+    - local
+
+audit:
+  require_evidence_for_claims: true
+
+research:
+  default_stage: question_definition

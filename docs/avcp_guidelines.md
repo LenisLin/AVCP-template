@@ -8,6 +8,7 @@ Output rules:
 - Format: `.parquet` for large, `.csv` for small
 - Sidecar: always generate `<stem>_meta.json` with `file`, `primary_key`, `columns`, `provenance`
 - No implicit index: always have an explicit primary key column
+- Research provenance: include `run_id`, `stage`, `upstream_artifacts`, and `evidence_metadata` whenever available
 
 ## Git and SemVer
 SemVer applies to release artifacts (repo-level or component-level), not individual files.
@@ -73,6 +74,52 @@ Recommended conclusion format:
 2. Evidence
 3. Confidence / uncertainty
 4. Next verification step (if needed)
+
+## 4.3 Research Claim Discipline
+- Distinguish:
+  - `observation`: what the data directly show
+  - `interpretation`: best-supported explanation consistent with the evidence
+  - `recommendation`: an action proposal contingent on goals and uncertainty
+  - `manuscript_main_conclusion`: a publication-facing conclusion requiring approval
+- Observational outputs must not use causal wording unless causal identification has been explicitly locked and approved.
+- Every non-trivial claim must include:
+  - `claim_class`
+  - `evidence_refs`
+  - `uncertainty`
+  - `approval_status`
+  - `threats_to_validity`
+
+## 4.4 Research Risk Gates
+- Tier-0:
+  - logging, refactors, non-interpretive plotting, test-only changes
+- Tier-1:
+  - config/schema/interface changes; update docs/contracts before code
+- Tier-2:
+  - `new_metric`
+  - `outcome_switch`
+  - `post_hoc_subgroup`
+  - `exclusion_criteria_drift`
+  - `statistical_interpretation`
+  - `manuscript_main_conclusion`
+- Tier-2 work must be blocked until an approval gate is recorded in the run manifest or decision log.
+
+## 4.5 Runtime Manifest Contract
+- Every serious research run should persist:
+  - `manifest.json`
+  - `events.jsonl`
+  - `claims.json`
+  - `outputs/`
+  - `checkpoints/`
+- Chat summaries are convenience views; the manifest and claim ledger are the durable record.
+- Subagents must return structured task/evidence/risk data so the orchestrator can stay lightweight.
+
+## 4.6 Doctor / Preflight
+- Run `python scripts/dev/doctor.py` before long or publication-facing workflows.
+- Doctor is expected to fail on:
+  - missing runtime config keys
+  - missing or placeholder docs
+  - pending high-risk approval gates
+  - claim ledgers that violate evidence requirements
 
 ## README (Derived Artifact)
 - `README.md` is a derived artifact generated from `project.yaml` + `docs/readme.template.md`.
